@@ -134,6 +134,7 @@ DIRECT_TESTS += \
   java_checkers \
   java_classloads \
   java_eradicate \
+  java_gradual \
   java_hoisting \
   java_hoistingExpensive \
   java_infer \

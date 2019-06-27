@@ -16,11 +16,8 @@ before_install:
   - eval $(opam env)
   - export OPAMVERBOSE=1
 install:
-  - opam update --upgrade
-  - opam pin add --no-action infer .
-  - opam depext --update infer
-  - opam install --deps-only infer
+  - ./build-infer.sh java
 script:
-  - opam install infer
+  - ./test
 os:
 - linux

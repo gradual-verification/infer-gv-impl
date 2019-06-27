@@ -418,6 +418,14 @@ OPTIONS
        --generated-classes path
            Specify where to load the generated class files           See also infer-capture(1).
 
+       --gradual
+           Activates: the gradual @Nullable checker for Java annotations
+           (Conversely: --no-gradual)           See also infer-analyze(1).
+
+       --gradual-only
+           Activates: Enable --gradual and disable all other checkers
+           (Conversely: --no-gradual-only)           See also infer-analyze(1).
+
        --headers
            Activates: Analyze code in header files (Conversely: --no-headers)       
     See also infer-capture(1).

@@ -604,6 +604,7 @@ and ( annotation_reachability
     , cost
     , eradicate
     , fragment_retains_view
+    , gradual
     , immutable_cast
     , linters
     , litho
@@ -647,6 +648,8 @@ and ( annotation_reachability
   and fragment_retains_view =
     mk_checker ~long:"fragment-retains-view" ~default:true
       "detects when Android fragments are not explicitly nullified before becoming unreabable"
+  and gradual =
+    mk_checker ~long:"gradual" "the gradual @Nullable checker for Java annotations"
   and immutable_cast =
     mk_checker ~long:"immutable-cast" ~default:false
       "the detection of object cast from immutable type to mutable type. For instance, it will \
@@ -723,6 +726,7 @@ and ( annotation_reachability
   , cost
   , eradicate
   , fragment_retains_view
+  , gradual
   , immutable_cast
   , linters
   , litho
