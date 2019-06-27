@@ -2736,6 +2736,8 @@ and generated_classes = !generated_classes
 
 and get_linter_doc_url = process_linters_doc_url !linters_doc_url
 
+and gradual = !gradual
+
 and html = !html
 
 and hoisting_report_only_expensive = !hoisting_report_only_expensive
