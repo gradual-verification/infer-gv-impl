@@ -272,6 +272,13 @@ let field_not_null_checked = from_string "IVAR_NOT_NULL_CHECKED"
 let _global_variable_initialized_with_function_or_method_call =
   from_string ~enabled:false "GLOBAL_VARIABLE_INITIALIZED_WITH_FUNCTION_OR_METHOD_CALL"
 
+let gradual_argument = from_string "GRADUAL_ARGUMENT"
+
+let gradual_dereference = from_string "GRADUAL_DEREFERENCE"
+
+let gradual_field = from_string "GRADUAL_FIELD"
+
+let gradual_return = from_string "GRADUAL_RETURN"
 
 let graphql_field_access = from_string "GRAPHQL_FIELD_ACCESS"
 
