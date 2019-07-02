@@ -8,7 +8,6 @@ module N = struct
   let equal _ _ = true
 end
 
-type inner = N
 module Lattice = AbstractDomain.Flat (N)
 module Domain = AbstractDomain.Map (Var) (Lattice)
 
