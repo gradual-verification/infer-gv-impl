@@ -35,7 +35,7 @@ end
 module Analyzer = LowerHil.MakeAbstractInterpreter (TransferFunctions (ProcCfg.Exceptional))
 
 let checker {Callbacks.summary; proc_desc; tenv} =
-    let initial = Domain.empty in
-    let proc_data = ProcData.make proc_desc tenv summary in
+  let initial = Domain.empty in
+  let proc_data = ProcData.make proc_desc tenv summary in
   ignore (Analyzer.compute_post proc_data ~initial) ;
   summary
