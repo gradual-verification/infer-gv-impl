@@ -1,10 +1,18 @@
+package codetoanalyze.java.gradual;
+
 class Foo {
-  Object f;
+  Foo f;
 }
 
 class Dereference {
   void f() {
     Foo x = null;
-    Object y = x.f;
+    Foo y = x.f.f;
+
+    int[][] a = null;
+    int b = a[0][0];
+
+    Foo m = new Foo();
+    m.f = null;
   }
 }

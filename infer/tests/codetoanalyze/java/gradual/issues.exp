@@ -1,0 +1,4 @@
+codetoanalyze/java/gradual/Dereference.java, codetoanalyze.java.gradual.Dereference.f():void, 2, GRADUAL_DEREFERENCE, no_bucket, WARNING, [*(x)]
+codetoanalyze/java/gradual/Dereference.java, codetoanalyze.java.gradual.Dereference.f():void, 5, GRADUAL_DEREFERENCE, no_bucket, WARNING, [*(a)]
+codetoanalyze/java/gradual/Dereference.java, codetoanalyze.java.gradual.Dereference.f():void, 8, GRADUAL_DEREFERENCE, no_bucket, WARNING, [*(m)]
+codetoanalyze/java/gradual/Dereference.java, codetoanalyze.java.gradual.Dereference.f():void, 8, GRADUAL_FIELD, no_bucket, WARNING, [codetoanalyze.java.gradual.Foo.f]
