@@ -9,6 +9,6 @@ INFER_OPTIONS = \
   --gradual-only \
   --debug-exceptions
 INFERPRINT_OPTIONS = --issues-tests
-SOURCES = $(wildcard *.java) $(wildcard $(TESTS_DIR)/external/library/*.java)
+SOURCES = $(wildcard *.java)
 
 include $(TESTS_DIR)/javac.make
