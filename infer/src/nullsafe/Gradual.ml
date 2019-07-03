@@ -93,7 +93,7 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
         | _ ->
           Lattice.v ()
       in
-      let rec checked_vars (exp : HilExp.t) : checked =
+      let rec checked_vars (exp : HilExp.t) =
         match exp with
         | UnaryOperator (Unop.LNot, subexp, _) ->
           let { assume; deny } = checked_vars subexp in
