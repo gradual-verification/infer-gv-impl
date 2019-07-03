@@ -46,23 +46,23 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
         | None ->
           Lattice.top
         | Some struct_typ ->
-          let nullable = Annotations.field_has_annot fieldname struct_typ Annotations.ia_is_nullable in
-          if nullable then Lattice.top else Lattice.v ()
+          let nonnull = Annotations.field_has_annot fieldname struct_typ Annotations.ia_is_nonnull in
+          if nonnull then Lattice.v () else Lattice.top
       in
       let proc_annot procname =
-        let nullable = Annotations.pname_has_return_annot
+        let nonnull = Annotations.pname_has_return_annot
           procname
           ~attrs_of_pname:Summary.proc_resolve_attributes
-          Annotations.ia_is_nullable in
-        if nullable then Lattice.top else Lattice.v ()
+          Annotations.ia_is_nonnull in
+        if nonnull then Lattice.v () else Lattice.top
       in
       let args_annot procname =
         match Summary.proc_resolve_attributes procname with
         | Some { method_annotation = { params } } ->
           List.map params ~f:(fun annot ->
-            if Annotations.ia_is_nullable annot
-            then Lattice.top
-            else Lattice.v ()
+            if Annotations.ia_is_nonnull annot
+            then Lattice.v ()
+            else Lattice.top
           )
         | _ ->
           []
