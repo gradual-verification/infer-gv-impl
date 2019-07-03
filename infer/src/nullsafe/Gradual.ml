@@ -121,8 +121,7 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
           ignore (check_exp right) ;
           Lattice.v ()
         | Cast (_, subexp) ->
-          ignore (check_exp subexp) ;
-          if HilExp.is_null_literal exp then Lattice.top else Lattice.v ()
+          check_exp subexp
         | Constant _ when HilExp.is_null_literal exp ->
           Lattice.top
         | _ ->
