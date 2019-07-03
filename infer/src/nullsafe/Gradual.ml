@@ -19,6 +19,10 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
 
   let pp_session_name _ _ = ()
 
+  module Vars = Caml.Set.Make(Var)
+
+  type checked = { assume : Vars.t; deny: Vars.t }
+
   let exec_instr astate {ProcData.pdesc; tenv; extras} _ (instr : HilInstr.t) =
     let summary = extras
     in
@@ -89,6 +93,53 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
         | _ ->
           Lattice.v ()
       in
+      let rec checked_vars (exp : HilExp.t) : checked =
+        match exp with
+        | UnaryOperator (Unop.LNot, subexp, _) ->
+          let { assume; deny } = checked_vars subexp in
+          { assume = deny; deny = assume }
+        | BinaryOperator (Binop.Eq, AccessExpression (Base (var, _)), subexp)
+        | BinaryOperator (Binop.Eq, subexp, AccessExpression (Base (var, _))) ->
+          (
+            match Lattice.get (check_exp subexp) with
+            | Some _ ->
+              { assume = Vars.singleton var; deny = Vars.empty }
+            | _ ->
+              let assume = (
+                match subexp with
+                | AccessExpression (Base (var', _)) ->
+                  (
+                    match Domain.find_opt var astate with
+                    | Some l ->
+                      (
+                        match Lattice.get l with
+                        | Some _ -> Vars.singleton var'
+                        | _ -> Vars.empty
+                      )
+                    | _ -> Vars.empty
+                  )
+                | _ -> Vars.empty
+              ) in
+              { assume; deny = Vars.empty }
+          )
+        | BinaryOperator (Binop.Ne, left, right) ->
+          let rewritten = HilExp.BinaryOperator (Binop.Eq, left, right) in
+          let { assume; deny } = checked_vars rewritten in
+          { assume = deny; deny = assume }
+        | BinaryOperator (Binop.LAnd, left, right) ->
+          let { assume = assume_left; deny = deny_left } = checked_vars left in
+          let { assume = assume_right; deny = deny_right } = checked_vars right in
+          { assume = Vars.union assume_left assume_right;
+            deny = Vars.inter deny_left deny_right }
+        | BinaryOperator (Binop.LOr, left, right) ->
+          let { assume = assume_left; deny = deny_left } = checked_vars left in
+          let { assume = assume_right; deny = deny_right } = checked_vars right in
+          { assume = Vars.inter assume_left assume_right;
+            deny = Vars.union deny_left deny_right }
+        | _ ->
+          ignore (check_exp exp) ;
+          { assume = Vars.empty; deny = Vars.empty }
+      in
       match instr with
       | Metadata _ -> astate (* should be unreachable *)
       | Assign (lhs, rhs, _) ->
@@ -109,8 +160,8 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
             astate
         )
       | Assume (cond, _, _, _) ->
-        ignore (check_exp cond) ;
-        astate
+        List.fold_left (Vars.elements (checked_vars cond).assume) ~init:astate
+          ~f:(fun astate var -> Domain.add var (Lattice.v ()) astate)
       | Call (lhs, proc, args, _, _) ->
         (
           match proc with
