@@ -67,7 +67,7 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
         | _ ->
           []
       in
-      let rec combine (args : HilExp.t list) (annots : Lattice.t list) : param list =
+      let rec combine args annots =
         match args with
         | [] ->
           []
