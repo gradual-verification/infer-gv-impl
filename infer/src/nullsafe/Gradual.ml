@@ -112,6 +112,11 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
         ignore (check_exp cond) ;
         astate
       | Call (lhs, proc, args, _, _) ->
+        (
+          match proc with
+          | Indirect access -> ignore (check_chain access)
+          | _ -> ()
+        ) ;
         List.fold_left args ~init:() ~f:(fun _ arg -> ignore (check_exp arg)) ;
         astate
 end
