@@ -25,7 +25,7 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
 
   type proc_info = { args : HilExp.t list; l : Lattice.t }
 
-  let exec_instr astate {ProcData.pdesc; tenv; extras} _ (instr : HilInstr.t) =
+  let exec_instr astate { ProcData.tenv; extras } _ (instr : HilInstr.t) =
     let summary = extras
     in
     match instr with
