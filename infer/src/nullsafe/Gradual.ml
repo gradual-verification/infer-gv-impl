@@ -23,7 +23,9 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
 
   type checked = { assume : Vars.t; deny: Vars.t }
 
-  type proc_info = { args : HilExp.t list; l : Lattice.t }
+  type param = { arg : HilExp.t; annot: Lattice.t }
+
+  type proc_info = { args : param list; l : Lattice.t }
 
   let exec_instr astate { ProcData.tenv; extras } _ (instr : HilInstr.t) =
     let summary = extras
@@ -53,6 +55,29 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
           ~attrs_of_pname:Summary.proc_resolve_attributes
           Annotations.ia_is_nullable in
         if nullable then Lattice.top else Lattice.v ()
+      in
+      let args_annot procname =
+        match Summary.proc_resolve_attributes procname with
+        | Some { method_annotation = { params } } ->
+          List.map params ~f:(fun annot ->
+            if Annotations.ia_is_nullable annot
+            then Lattice.top
+            else Lattice.v ()
+          )
+        | _ ->
+          []
+      in
+      let rec combine (args : HilExp.t list) (annots : Lattice.t list) : param list =
+        match args with
+        | [] ->
+          []
+        | arg :: args ->
+          let annot, annots = (
+            match annots with
+            | [] -> (Lattice.top, [])
+            | annot :: annots -> (annot, annots)
+          ) in
+          { arg; annot } :: combine args annots
       in
       let rec check_chain (access : HilExp.AccessExpression.t) =
         match access with
@@ -175,12 +200,13 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
         let { args; l } = (
           match proc with
           | Direct (Typ.Procname.Java procname as fullname) ->
+            let args = combine args (args_annot fullname) in
             let l = proc_annot fullname in
             if Typ.Procname.Java.is_static procname then { args; l } else (
               match args with
               | [] ->
                 { args; l }
-              | receiver :: tail ->
+              | { arg = receiver } :: tail ->
                 (
                   let rec_l = check_exp receiver in
                   if Lattice.is_top rec_l then
@@ -191,11 +217,16 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
             )
           | Indirect access ->
             ignore (check_chain access) ;
-            { args; l = Lattice.top }
+            { args = combine args []; l = Lattice.top }
           | _ ->
-            { args; l = Lattice.top }
+            { args = combine args []; l = Lattice.top }
         ) in
-        List.fold_left args ~init:() ~f:(fun _ arg -> ignore (check_exp arg)) ;
+        List.fold_left args ~init:() ~f:(fun _ { arg; annot } ->
+          let arg_l = check_exp arg in
+          if not (Lattice.(<=) ~lhs:arg_l ~rhs:annot) then
+          let message = Format.asprintf "%a" HilExp.pp arg in
+          report IssueType.gradual_argument message
+        ) ;
         Domain.add var l astate
 end
 
