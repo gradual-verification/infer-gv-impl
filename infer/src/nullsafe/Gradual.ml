@@ -23,6 +23,8 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
 
   type checked = { assume : Vars.t; deny: Vars.t }
 
+  type proc_info = { args : HilExp.t list; l : Lattice.t }
+
   let exec_instr astate {ProcData.pdesc; tenv; extras} _ (instr : HilInstr.t) =
     let summary = extras
     in
@@ -44,6 +46,13 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
         | Some struct_typ ->
           let nullable = Annotations.field_has_annot fieldname struct_typ Annotations.ia_is_nullable in
           if nullable then Lattice.top else Lattice.v ()
+      in
+      let proc_annot procname =
+        let nullable = Annotations.pname_has_return_annot
+          procname
+          ~attrs_of_pname:Summary.proc_resolve_attributes
+          Annotations.ia_is_nullable in
+        if nullable then Lattice.top else Lattice.v ()
       in
       let rec check_chain (access : HilExp.AccessExpression.t) =
         match access with
@@ -162,32 +171,32 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
       | Assume (cond, _, _, _) ->
         List.fold_left (Vars.elements (checked_vars cond).assume) ~init:astate
           ~f:(fun astate var -> Domain.add var (Lattice.v ()) astate)
-      | Call (lhs, proc, args, _, _) ->
-        let to_check = (
+      | Call ((var, _), proc, args, _, _) ->
+        let { args; l } = (
           match proc with
-          | Direct (Typ.Procname.Java procname)
-            when not (Typ.Procname.Java.is_static procname) ->
-            (
+          | Direct (Typ.Procname.Java procname as fullname) ->
+            let l = proc_annot fullname in
+            if Typ.Procname.Java.is_static procname then { args; l } else (
               match args with
               | [] ->
-                args
+                { args; l }
               | receiver :: tail ->
                 (
-                  let l = check_exp receiver in
-                  if Lattice.is_top l then
+                  let rec_l = check_exp receiver in
+                  if Lattice.is_top rec_l then
                   let message = Format.asprintf "%a" HilExp.pp receiver in
                   report IssueType.gradual_dereference message
                 ) ;
-                tail
+                { args = tail; l }
             )
           | Indirect access ->
             ignore (check_chain access) ;
-            args
+            { args; l = Lattice.top }
           | _ ->
-            args
+            { args; l = Lattice.top }
         ) in
-        List.fold_left to_check ~init:() ~f:(fun _ arg -> ignore (check_exp arg)) ;
-        astate
+        List.fold_left args ~init:() ~f:(fun _ arg -> ignore (check_exp arg)) ;
+        Domain.add var l astate
 end
 
 module Analyzer = LowerHil.MakeAbstractInterpreter (TransferFunctions (ProcCfg.Exceptional))
