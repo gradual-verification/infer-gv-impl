@@ -100,7 +100,8 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
           (
             let l = check_chain sub in
             if Lattice.is_top l then
-            let message = Format.asprintf "%a" HilExp.AccessExpression.pp access in
+            let message = Format.asprintf "dereference of possibly-null pointer `%a`"
+              HilExp.AccessExpression.pp sub in
             report IssueType.gradual_dereference message
           ) ;
           Lattice.v ()
@@ -186,7 +187,8 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
           | FieldOffset (_, fieldname) ->
             (
               if not (Lattice.(<=) ~lhs:l ~rhs:(field_annot fieldname)) then
-              let message = Typ.Fieldname.to_string fieldname in
+              let message = Format.asprintf "possibly-null assignment to nonnull field `%s`"
+                (Typ.Fieldname.to_string fieldname) in
               report IssueType.gradual_field message
             ) ;
             astate
@@ -210,7 +212,8 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
                 (
                   let rec_l = check_exp receiver in
                   if Lattice.is_top rec_l then
-                  let message = Format.asprintf "%a" HilExp.pp receiver in
+                  let message = Format.asprintf "method call on possibly-null pointer `%a`"
+                    HilExp.pp receiver in
                   report IssueType.gradual_dereference message
                 ) ;
                 { args = tail; l }
@@ -224,7 +227,8 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
         List.fold_left args ~init:() ~f:(fun _ { arg; annot } ->
           let arg_l = check_exp arg in
           if not (Lattice.(<=) ~lhs:arg_l ~rhs:annot) then
-          let message = Format.asprintf "%a" HilExp.pp arg in
+          let message = Format.asprintf "possibly-null argument `%a` passed to nonnull parameter"
+            HilExp.pp arg in
           report IssueType.gradual_argument message
         ) ;
         Domain.add var l astate
