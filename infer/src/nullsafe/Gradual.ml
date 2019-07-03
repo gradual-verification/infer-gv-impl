@@ -163,12 +163,30 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
         List.fold_left (Vars.elements (checked_vars cond).assume) ~init:astate
           ~f:(fun astate var -> Domain.add var (Lattice.v ()) astate)
       | Call (lhs, proc, args, _, _) ->
-        (
+        let to_check = (
           match proc with
-          | Indirect access -> ignore (check_chain access)
-          | _ -> ()
-        ) ;
-        List.fold_left args ~init:() ~f:(fun _ arg -> ignore (check_exp arg)) ;
+          | Direct (Typ.Procname.Java procname)
+            when not (Typ.Procname.Java.is_static procname) ->
+            (
+              match args with
+              | [] ->
+                args
+              | receiver :: tail ->
+                (
+                  let l = check_exp receiver in
+                  if Lattice.is_top l then
+                  let message = Format.asprintf "%a" HilExp.pp receiver in
+                  report IssueType.gradual_dereference message
+                ) ;
+                tail
+            )
+          | Indirect access ->
+            ignore (check_chain access) ;
+            args
+          | _ ->
+            args
+        ) in
+        List.fold_left to_check ~init:() ~f:(fun _ arg -> ignore (check_exp arg)) ;
         astate
 end
 
