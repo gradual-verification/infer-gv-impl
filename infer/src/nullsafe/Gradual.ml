@@ -79,12 +79,20 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
           ) in
           { arg; annot } :: combine args annots
       in
+      let is_this var =
+        match Var.get_pvar var with
+        | Some pvar -> Pvar.is_this pvar
+        | _ -> false
+      in
       let rec check_chain (access : HilExp.AccessExpression.t) =
         match access with
-        | Base (var, _) -> (
-          match Domain.find_opt var astate with
-          | None -> Lattice.top
-          | Some l -> l )
+        | Base (var, _) ->
+          if is_this var then Lattice.v ()
+          else (
+            match Domain.find_opt var astate with
+            | None -> Lattice.top
+            | Some l -> l
+          )
         | FieldOffset (sub, fieldname) ->
           ignore (check_chain sub) ;
           field_annot fieldname
