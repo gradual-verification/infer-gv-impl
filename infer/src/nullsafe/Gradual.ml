@@ -219,13 +219,16 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
             let args = combine args (args_annot procname) in
             { args; l = Lattice.v () }
           | Direct (Typ.Procname.Java procname as fullname) ->
-            let args = combine args (args_annot fullname) in
+            let annots = args_annot fullname in
+            let combined = combine args annots in
             let l = proc_annot fullname in
-            if Typ.Procname.Java.is_static procname then { args; l } else (
+            if Typ.Procname.Java.is_static procname
+            then { args = combined; l }
+            else (
               match args with
               | [] ->
-                { args; l }
-              | { arg = receiver } :: tail ->
+                { args = combined; l }
+              | receiver :: tail ->
                 (
                   let rec_l = check_exp receiver in
                   if Lattice.is_top rec_l then
@@ -233,7 +236,7 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
                     HilExp.pp receiver in
                   report IssueType.gradual_dereference message
                 ) ;
-                { args = tail; l }
+                { args = combine tail (args_annot fullname); l }
             )
           | Indirect access ->
             ignore (check_chain access) ;
