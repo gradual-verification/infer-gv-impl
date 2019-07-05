@@ -11,6 +11,17 @@ end
 module Lattice = AbstractDomain.Flat (N)
 module Domain = AbstractDomain.Map (Var) (Lattice)
 
+let args_annot procname =
+  match Summary.proc_resolve_attributes procname with
+  | Some { method_annotation = { params } } ->
+    List.map params ~f:(fun annot ->
+      if Annotations.ia_is_nonnull annot
+      then Lattice.v ()
+      else Lattice.top
+    )
+  | _ ->
+    []
+
 module TransferFunctions (CFG : ProcCfg.S) = struct
   module CFG = CFG
   module Domain = Domain
@@ -71,17 +82,6 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
           ~attrs_of_pname:Summary.proc_resolve_attributes
           Annotations.ia_is_nonnull in
         if nonnull then Lattice.v () else Lattice.top
-      in
-      let args_annot procname =
-        match Summary.proc_resolve_attributes procname with
-        | Some { method_annotation = { params } } ->
-          List.map params ~f:(fun annot ->
-            if Annotations.ia_is_nonnull annot
-            then Lattice.v ()
-            else Lattice.top
-          )
-        | _ ->
-          []
       in
       let rec combine args annots =
         match args with
@@ -272,7 +272,21 @@ end
 module Analyzer = LowerHil.MakeAbstractInterpreter (TransferFunctions (ProcCfg.Exceptional))
 
 let checker { Callbacks.summary; proc_desc; tenv } =
-  let initial = Domain.empty in
+  let rec combine params annots =
+    match params, annots with
+    | (param :: params), (annot :: annots) ->
+      (param, annot) :: combine params annots
+    | _ ->
+      []
+  in
+  let attrs = Procdesc.get_attributes proc_desc in
+  let params = List.map attrs.formals ~f:(fun (name, _) ->
+    Var.of_pvar (Pvar.mk name attrs.proc_name)
+  ) in
+  let annots = args_annot attrs.proc_name in
+  let params = combine params annots in
+  let initial = List.fold_left params ~init:Domain.empty
+    ~f:(fun astate (var, l) -> Domain.add var l astate) in
   let proc_data = ProcData.make proc_desc tenv summary in
   ignore (Analyzer.compute_post proc_data ~initial) ;
   summary
