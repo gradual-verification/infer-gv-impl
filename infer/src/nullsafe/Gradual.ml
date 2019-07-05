@@ -36,9 +36,18 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
     | Assign (_, _, loc)
     | Assume (_, _, _, loc)
     | Call (_, _, _, _, loc) ->
-      let report issue msg =
-        let trace = Errlog.make_trace_element 1 loc msg [] in
-        Reporting.log_warning summary ~loc ~ltr:[trace] issue ""
+      let warnings = ref []
+      in
+      let report msg =
+        warnings := msg :: !warnings
+      in
+      let report_all () =
+        let warnings = List.rev !warnings in
+        if warnings <> [] then
+        let trace = List.map warnings ~f:(fun msg ->
+          Errlog.make_trace_element 1 loc msg []
+        ) in
+        Reporting.log_warning summary ~loc ~ltr:trace IssueType.gradual ""
       in
       let field_annot fieldname =
         let struct_name = Typ.Name.Java.from_string (Typ.Fieldname.Java.get_class fieldname) in
@@ -117,7 +126,7 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
             if Lattice.is_top l then
             let message = Format.asprintf "dereference of possibly-null pointer `%a`"
               HilExp.AccessExpression.pp sub in
-            report IssueType.gradual_dereference message
+            report message
           ) ;
           Lattice.v ()
         | _ ->
@@ -194,7 +203,7 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
       | Assign (lhs, rhs, _) ->
         ignore (check_chain lhs) ;
         let l = check_exp rhs in
-        (
+        let astate = (
           match lhs with
           | Base (var, _) ->
             Domain.add var l astate
@@ -203,15 +212,20 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
               if not (Lattice.(<=) ~lhs:l ~rhs:(field_annot fieldname)) then
               let message = Format.asprintf "possibly-null assignment to nonnull field `%s`"
                 (Typ.Fieldname.to_string fieldname) in
-              report IssueType.gradual_field message
+              report message
             ) ;
             astate
           | _ ->
             astate
-        )
+        ) in
+        report_all () ;
+        astate
       | Assume (cond, _, _, _) ->
-        List.fold_left (Vars.elements (checked_vars cond).assume) ~init:astate
+        let astate = List.fold_left (Vars.elements (checked_vars cond).assume) ~init:astate
           ~f:(fun astate var -> Domain.add var (Lattice.v ()) astate)
+        in
+        report_all () ;
+        astate
       | Call ((var, _), proc, args, _, _) ->
         let { args; l } = (
           match proc with
@@ -234,7 +248,7 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
                   if Lattice.is_top rec_l then
                   let message = Format.asprintf "method call on possibly-null pointer `%a`"
                     HilExp.pp receiver in
-                  report IssueType.gradual_dereference message
+                  report message
                 ) ;
                 { args = combine tail (args_annot fullname); l }
             )
@@ -249,8 +263,9 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
           if not (Lattice.(<=) ~lhs:arg_l ~rhs:annot) then
           let message = Format.asprintf "possibly-null argument `%a` passed to nonnull parameter"
             HilExp.pp arg in
-          report IssueType.gradual_argument message
+          report message
         ) ;
+        report_all () ;
         Domain.add var l astate
 end
 
