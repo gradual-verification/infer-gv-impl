@@ -49,6 +49,13 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
           let nonnull = Annotations.field_has_annot fieldname struct_typ Annotations.ia_is_nonnull in
           if nonnull then Lattice.v () else Lattice.top
       in
+      (* https://stackoverflow.com/a/30519110/5044950 *)
+      let contains_substring search target =
+        String.substr_index search ~pattern:target <> None
+      in
+      let is_new procname : bool =
+        contains_substring (Typ.Procname.get_method procname) "__new"
+      in
       let proc_annot procname =
         let nonnull = Annotations.pname_has_return_annot
           procname
@@ -208,6 +215,9 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
       | Call ((var, _), proc, args, _, _) ->
         let { args; l } = (
           match proc with
+          | Direct procname when is_new procname ->
+            let args = combine args (args_annot procname) in
+            { args; l = Lattice.v () }
           | Direct (Typ.Procname.Java procname as fullname) ->
             let args = combine args (args_annot fullname) in
             let l = proc_annot fullname in
