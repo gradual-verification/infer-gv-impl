@@ -11,6 +11,11 @@ end
 module Lattice = AbstractDomain.Flat (N)
 module Domain = AbstractDomain.Map (Var) (Lattice)
 
+let is_this var =
+  match Var.get_pvar var with
+  | Some pvar -> Pvar.is_this pvar
+  | _ -> false
+
 let args_annot procname =
   match Summary.proc_resolve_attributes procname with
   | Some { method_annotation = { params } } ->
@@ -94,11 +99,6 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
             | annot :: annots -> (annot, annots)
           ) in
           { arg; annot } :: combine args annots
-      in
-      let is_this var =
-        match Var.get_pvar var with
-        | Some pvar -> Pvar.is_this pvar
-        | _ -> false
       in
       let rec check_chain (access : HilExp.AccessExpression.t) =
         match access with
@@ -280,8 +280,9 @@ let checker { Callbacks.summary; proc_desc; tenv } =
       []
   in
   let attrs = Procdesc.get_attributes proc_desc in
-  let params = List.map attrs.formals ~f:(fun (name, _) ->
-    Var.of_pvar (Pvar.mk name attrs.proc_name)
+  let params = List.filter_map attrs.formals ~f:(fun (name, _) ->
+    let var = Var.of_pvar (Pvar.mk name attrs.proc_name) in
+    if is_this var then None else Some var
   ) in
   let annots = args_annot attrs.proc_name in
   let params = combine params annots in
