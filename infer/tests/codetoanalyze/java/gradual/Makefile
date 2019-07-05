@@ -7,7 +7,7 @@ TESTS_DIR = ../../..
 
 INFER_OPTIONS = \
   --gradual-only \
-  --debug-exceptions
+  --debug
 INFERPRINT_OPTIONS = --issues-tests
 SOURCES = $(wildcard *.java)
 
