@@ -1,11 +1,12 @@
 package codetoanalyze.java.gradual;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 class Foo {
-  Object f;
+  @Nullable Object f;
 
-  static Foo mystery() {
+  static @Nullable Foo mystery() {
     return new Foo();
   }
 
@@ -41,7 +42,7 @@ class Foo {
 class Bar {
   @Nonnull String s = "Hello, world!";
 
-  String getSNullable() {
+  @Nullable String getSNullable() {
     return s;
   }
 
@@ -141,13 +142,13 @@ class MatchInstrTests {
     int l = s.length(); // shouldn't warn
   }
 
-  static void arrayItemsNullable() {
+  static void arrayItemsQuestionMark() {
     String[] ss = new String[2];
     ss[0] = "Hello, world!";
     String a = ss[0];
     String b = ss[1];
-    int al = a.length(); // should warn about possible null dereference
-    int bl = b.length(); // should warn about null dereference
+    int al = a.length(); // shouldn't warn
+    int bl = b.length(); // shouldn't warn
   }
 
   static void castsAreStillNull() {
