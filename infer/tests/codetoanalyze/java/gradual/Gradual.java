@@ -168,4 +168,12 @@ class MatchInstrTests {
       Foo.complain(a, b, c); // should warn about a, b, c
     }
   }
+
+  static Object canReturnNullWithoutNonnull() {
+    return null; // shouldn't warn
+  }
+
+  static @Nonnull Object cantReturnNullWithNonnull() {
+    return null; // should warn about null return
+  }
 }

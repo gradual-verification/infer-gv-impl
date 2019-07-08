@@ -16,6 +16,11 @@ let is_this var =
   | Some pvar -> Pvar.is_this pvar
   | _ -> false
 
+let is_return var =
+  match Var.get_pvar var with
+  | Some pvar -> Pvar.is_return pvar
+  | _ -> false
+
 let args_annot procname =
   match Summary.proc_resolve_attributes procname with
   | Some { method_annotation = { params } } ->
@@ -43,7 +48,7 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
 
   type proc_info = { args : param list; l : Lattice.t }
 
-  let exec_instr astate { ProcData.tenv; extras } _ (instr : HilInstr.t) =
+  let exec_instr astate { ProcData.pdesc; tenv; extras } _ (instr : HilInstr.t) =
     let summary = extras
     in
     match instr with
@@ -175,6 +180,13 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
         let astate = (
           match lhs with
           | Base (var, _) ->
+            (
+              let procname = (Procdesc.get_attributes pdesc).proc_name in
+              if not (Lattice.(<=) ~lhs:l ~rhs:(proc_annot procname)) then
+              let message = Format.asprintf "possibly-null return in nonnull method `%s`"
+                (Typ.Procname.to_string procname) in
+              report message
+            ) ;
             Domain.add var l astate
           | FieldOffset (_, fieldname) ->
             (
