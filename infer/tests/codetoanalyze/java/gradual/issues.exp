@@ -4,6 +4,7 @@ codetoanalyze/java/gradual/Gradual.java, codetoanalyze.java.gradual.MatchInstrTe
 codetoanalyze/java/gradual/Gradual.java, codetoanalyze.java.gradual.MatchInstrTests.assignChecksLhsFieldAnnot():void, 2, GRADUAL, no_bucket, WARNING, [possibly-null assignment to nonnull field `codetoanalyze.java.gradual.Bar.s`]
 codetoanalyze/java/gradual/Gradual.java, codetoanalyze.java.gradual.MatchInstrTests.assignChecksRhs():void, 2, GRADUAL, no_bucket, WARNING, [dereference of possibly-null pointer `x`]
 codetoanalyze/java/gradual/Gradual.java, codetoanalyze.java.gradual.MatchInstrTests.assignMakesNonnull():void, 2, GRADUAL, no_bucket, WARNING, [dereference of possibly-null pointer `x`]
+codetoanalyze/java/gradual/Gradual.java, codetoanalyze.java.gradual.MatchInstrTests.assumeChecksCond():void, 2, GRADUAL, no_bucket, WARNING, [dereference of possibly-null pointer `x`]
 codetoanalyze/java/gradual/Gradual.java, codetoanalyze.java.gradual.MatchInstrTests.callMakesNonnull():void, 3, GRADUAL, no_bucket, WARNING, [method call on possibly-null pointer `s`]
 codetoanalyze/java/gradual/Gradual.java, codetoanalyze.java.gradual.MatchInstrTests.callMethodChecksAllAnnots():void, 4, GRADUAL, no_bucket, WARNING, [possibly-null argument `z` passed to nonnull parameter]
 codetoanalyze/java/gradual/Gradual.java, codetoanalyze.java.gradual.MatchInstrTests.callMethodRejectsNullReceiver():void, 2, GRADUAL, no_bucket, WARNING, [method call on possibly-null pointer `x`]

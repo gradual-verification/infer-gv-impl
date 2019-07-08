@@ -166,10 +166,8 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
         | BinaryOperator (Ne, AccessExpression (Base (var, _)), subexp)
         | BinaryOperator (Ne, subexp, AccessExpression (Base (var, _)))
           when HilExp.is_null_literal subexp ->
-          ignore (check_exp subexp) ;
           { assume = Vars.singleton var; deny = Vars.empty }
         | _ ->
-          ignore (check_exp exp) ;
           { assume = Vars.empty; deny = Vars.empty }
       in
       match instr with
@@ -202,6 +200,7 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
         report_all () ;
         astate
       | Assume (cond, _, _, _) ->
+        ignore (check_exp cond) ;
         let astate = List.fold_left (Vars.elements (checked_vars cond).assume) ~init:astate
           ~f:(fun astate var -> Domain.add var (Lattice.v ()) astate)
         in

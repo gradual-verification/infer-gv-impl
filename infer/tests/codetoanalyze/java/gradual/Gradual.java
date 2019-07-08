@@ -84,7 +84,7 @@ class MatchInstrTests {
   }
 
   static void assumeChecksCond() {
-    Foo x = new Foo();
+    Foo x = null;
     if (x.f == null) { // should warn about null dereference
       x = null;
     }
