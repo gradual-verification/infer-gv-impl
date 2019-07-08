@@ -3,9 +3,9 @@ open! IStd
 module N = struct
   type t = unit
 
-  let pp _ _ = ()
+  let pp f () = Format.pp_print_string f "()"
 
-  let equal _ _ = true
+  let equal () () = true
 end
 
 module Lattice = AbstractDomain.Flat (N)
