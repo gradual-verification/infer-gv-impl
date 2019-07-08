@@ -1,6 +1,3 @@
-codetoanalyze/java/gradual/Gradual.java, codetoanalyze.java.gradual.Foo.firstF(codetoanalyze.java.gradual.Foo,codetoanalyze.java.gradual.Foo,codetoanalyze.java.gradual.Foo):java.lang.Object, 4, GRADUAL, no_bucket, WARNING, [dereference of possibly-null pointer `y`]
-codetoanalyze/java/gradual/Gradual.java, codetoanalyze.java.gradual.Foo.firstF(codetoanalyze.java.gradual.Foo,codetoanalyze.java.gradual.Foo,codetoanalyze.java.gradual.Foo):java.lang.Object, 5, GRADUAL, no_bucket, WARNING, [dereference of possibly-null pointer `y`]
-codetoanalyze/java/gradual/Gradual.java, codetoanalyze.java.gradual.Foo.takeNull(codetoanalyze.java.gradual.Foo):java.lang.Object, 1, GRADUAL, no_bucket, WARNING, [dereference of possibly-null pointer `x`]
 codetoanalyze/java/gradual/Gradual.java, codetoanalyze.java.gradual.MatchInstrTests.arrayItemsNullable():void, 5, GRADUAL, no_bucket, WARNING, [method call on possibly-null pointer `a`]
 codetoanalyze/java/gradual/Gradual.java, codetoanalyze.java.gradual.MatchInstrTests.arrayItemsNullable():void, 6, GRADUAL, no_bucket, WARNING, [method call on possibly-null pointer `b`]
 codetoanalyze/java/gradual/Gradual.java, codetoanalyze.java.gradual.MatchInstrTests.assignChecksLhs():void, 2, GRADUAL, no_bucket, WARNING, [dereference of possibly-null pointer `x`]

@@ -160,8 +160,10 @@ class MatchInstrTests {
     Foo a = Foo.mystery();
     Foo b = Foo.mystery();
     Foo c = Foo.mystery();
+    // looks like true case should say b is nonnull
+    // but the compound cond expr is split b/c of short-circuiting
     if (!((a == null || b == null) && !(b == x && c != null))) {
-      Foo.complain(a, b, c); // should warn about a, c
+      Foo.complain(a, b, c); // should warn about a, b, c
     } else {
       Foo.complain(a, b, c); // should warn about a, b, c
     }
