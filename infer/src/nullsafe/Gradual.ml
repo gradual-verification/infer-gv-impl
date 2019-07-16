@@ -119,7 +119,8 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
         let trace = List.map warnings ~f:(fun msg ->
           Errlog.make_trace_element 1 loc msg []
         ) in
-        Reporting.log_warning summary ~loc ~ltr:trace IssueType.gradual ""
+        Reporting.log_warning summary ~loc ~ltr:trace
+          IssueType.gradual (String.concat ~sep:"," warnings)
       in
       let field_annot fieldname =
         let struct_name = Typ.Name.Java.from_string (Typ.Fieldname.Java.get_class fieldname) in
