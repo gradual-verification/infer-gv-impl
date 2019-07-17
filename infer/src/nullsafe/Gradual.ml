@@ -271,7 +271,7 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
             ) ;
             (
               match l, proc_annot procname with
-              | N, Q ->
+              | Q, N ->
                 let message = Format.asprintf "check ambiguous return in nonnull method `%s`"
                   (Typ.Procname.to_string procname) in
                 warn message
@@ -287,7 +287,7 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
             ) ;
             (
               match l, field_annot fieldname with
-              | N, Q ->
+              | Q, N ->
                 let message = Format.asprintf "check ambiguous assignment to nonnull field `%s`"
                   (Typ.Fieldname.to_string fieldname) in
                 warn message
@@ -353,7 +353,7 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
           ) ;
           (
             match arg_l, annot with
-            | N, Q ->
+            | Q, N ->
               let message = Format.asprintf "check ambiguous argument `%a` passed to nonnull parameter"
                 HilExp.pp arg in
               warn message
