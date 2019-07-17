@@ -125,7 +125,7 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
           Errlog.make_trace_element 1 loc msg []
         ) in
         Reporting.log_warning summary ~loc ~ltr:trace
-          IssueType.gradual (String.concat ~sep:"," msgs)
+          IssueType.gradual_dynamic (String.concat ~sep:"," msgs)
       in
       let report_errors () =
         let msgs = List.rev !errors in
@@ -134,7 +134,7 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
           Errlog.make_trace_element 1 loc msg []
         ) in
         Reporting.log_error summary ~loc ~ltr:trace
-          IssueType.gradual (String.concat ~sep:"," msgs)
+          IssueType.gradual_static (String.concat ~sep:"," msgs)
       in
       let report_all () =
         report_warnings () ;

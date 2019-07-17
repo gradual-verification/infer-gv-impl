@@ -177,7 +177,9 @@ val failure_exe : t
 
 val field_not_null_checked : t
 
-val gradual : t
+val gradual_dynamic : t
+
+val gradual_static : t
 
 val graphql_field_access : t
 
