@@ -108,19 +108,37 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
     | Assign (_, _, loc)
     | Assume (_, _, _, loc)
     | Call (_, _, _, _, loc) ->
+      let errors = ref []
+      in
       let warnings = ref []
       in
-      let report msg =
+      let warn msg =
         warnings := msg :: !warnings
       in
-      let report_all () =
-        let warnings = List.rev !warnings in
-        if warnings <> [] then
-        let trace = List.map warnings ~f:(fun msg ->
+      let err msg =
+        errors := msg :: !errors
+      in
+      let report_warnings () =
+        let msgs = List.rev !warnings in
+        if msgs <> [] then
+        let trace = List.map msgs ~f:(fun msg ->
           Errlog.make_trace_element 1 loc msg []
         ) in
         Reporting.log_warning summary ~loc ~ltr:trace
-          IssueType.gradual (String.concat ~sep:"," warnings)
+          IssueType.gradual (String.concat ~sep:"," msgs)
+      in
+      let report_errors () =
+        let msgs = List.rev !errors in
+        if msgs <> [] then
+        let trace = List.map msgs ~f:(fun msg ->
+          Errlog.make_trace_element 1 loc msg []
+        ) in
+        Reporting.log_error summary ~loc ~ltr:trace
+          IssueType.gradual (String.concat ~sep:"," msgs)
+      in
+      let report_all () =
+        report_warnings () ;
+        report_errors () ;
       in
       let field_annot fieldname =
         let struct_name = Typ.Name.Java.from_string (Typ.Fieldname.Java.get_class fieldname) in
@@ -192,7 +210,11 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
             | T ->
               let message = Format.asprintf "dereference of possibly-null pointer `%a`"
                 HilExp.AccessExpression.pp sub in
-              report message
+              err message
+            | Q ->
+              let message = Format.asprintf "check dereference of ambiguous pointer `%a`"
+                HilExp.AccessExpression.pp sub in
+              warn message
             | _ -> ()
           ) ;
           GLattice.N
@@ -240,12 +262,20 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
         let astate = (
           match lhs with
           | Base (var, _) ->
+            let procname = (Procdesc.get_attributes pdesc).proc_name in
             (
-              let procname = (Procdesc.get_attributes pdesc).proc_name in
               if not (GLattice.(<=) ~lhs:l ~rhs:(proc_annot procname)) then
               let message = Format.asprintf "possibly-null return in nonnull method `%s`"
                 (Typ.Procname.to_string procname) in
-              report message
+              err message
+            ) ;
+            (
+              match l, proc_annot procname with
+              | N, Q ->
+                let message = Format.asprintf "check ambiguous return in nonnull method `%s`"
+                  (Typ.Procname.to_string procname) in
+                warn message
+              | _ -> ()
             ) ;
             Domain.add var l astate
           | FieldOffset (_, fieldname) ->
@@ -253,7 +283,15 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
               if not (GLattice.(<=) ~lhs:l ~rhs:(field_annot fieldname)) then
               let message = Format.asprintf "possibly-null assignment to nonnull field `%s`"
                 (Typ.Fieldname.to_string fieldname) in
-              report message
+              err message
+            ) ;
+            (
+              match l, field_annot fieldname with
+              | N, Q ->
+                let message = Format.asprintf "check ambiguous assignment to nonnull field `%s`"
+                  (Typ.Fieldname.to_string fieldname) in
+                warn message
+              | _ -> ()
             ) ;
             astate
           | _ ->
@@ -290,7 +328,11 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
                   | T ->
                     let message = Format.asprintf "method call on possibly-null pointer `%a`"
                       HilExp.pp receiver in
-                    report message
+                    err message
+                  | Q ->
+                    let message = Format.asprintf "check method call on ambiguous pointer `%a`"
+                      HilExp.pp receiver in
+                    warn message
                   | _ -> ()
                 ) ;
                 { args = combine tail (args_annot fullname); l }
@@ -303,10 +345,20 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
         ) in
         List.fold_left args ~init:() ~f:(fun _ { arg; annot } ->
           let arg_l = check_exp arg in
-          if not (GLattice.(<=) ~lhs:arg_l ~rhs:annot) then
-          let message = Format.asprintf "possibly-null argument `%a` passed to nonnull parameter"
-            HilExp.pp arg in
-          report message
+          (
+            if not (GLattice.(<=) ~lhs:arg_l ~rhs:annot) then
+            let message = Format.asprintf "possibly-null argument `%a` passed to nonnull parameter"
+              HilExp.pp arg in
+            err message
+          ) ;
+          (
+            match arg_l, annot with
+            | N, Q ->
+              let message = Format.asprintf "check ambiguous argument `%a` passed to nonnull parameter"
+                HilExp.pp arg in
+              warn message
+            | _ -> ()
+          ) ;
         ) ;
         report_all () ;
         Domain.add var l astate
