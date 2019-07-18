@@ -422,9 +422,27 @@ OPTIONS
            Activates: the gradual @Nullable checker for Java annotations
            (Conversely: --no-gradual)           See also infer-analyze(1).
 
+       --gradual-dereferences
+           Activates: warns about all deferences; does not analyze
+           (Conversely: --no-gradual-dereferences)           See also infer-analyze(1).
+
+       --gradual-dereferences-only
+           Activates: Enable --gradual-dereferences and disable all other
+           checkers (Conversely: --no-gradual-dereferences-only)       
+    See also infer-analyze(1).
+
        --gradual-only
            Activates: Enable --gradual and disable all other checkers
            (Conversely: --no-gradual-only)           See also infer-analyze(1).
+
+       --gradual-unannotated
+           Activates: doesn't take annotations into account (Conversely:
+           --no-gradual-unannotated)           See also infer-analyze(1).
+
+       --gradual-unannotated-only
+           Activates: Enable --gradual-unannotated and disable all other
+           checkers (Conversely: --no-gradual-unannotated-only)       
+    See also infer-analyze(1).
 
        --headers
            Activates: Analyze code in header files (Conversely: --no-headers)       
