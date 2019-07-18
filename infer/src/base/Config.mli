@@ -388,6 +388,10 @@ val get_linter_doc_url : linter_id:string -> string option
 
 val gradual : bool
 
+val gradual_dereferences : bool
+
+val gradual_unannotated : bool
+
 val hoisting_report_only_expensive : bool
 
 val html : bool

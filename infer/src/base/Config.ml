@@ -605,6 +605,8 @@ and ( annotation_reachability
     , eradicate
     , fragment_retains_view
     , gradual
+    , gradual_dereferences
+    , gradual_unannotated
     , immutable_cast
     , linters
     , litho
@@ -650,6 +652,10 @@ and ( annotation_reachability
       "detects when Android fragments are not explicitly nullified before becoming unreabable"
   and gradual =
     mk_checker ~long:"gradual" "the gradual @Nullable checker for Java annotations"
+  and gradual_dereferences =
+    mk_checker ~long:"gradual-dereferences" "warns about all deferences; does not analyze"
+  and gradual_unannotated =
+    mk_checker ~long:"gradual-unannotated" "doesn't take annotations into account"
   and immutable_cast =
     mk_checker ~long:"immutable-cast" ~default:false
       "the detection of object cast from immutable type to mutable type. For instance, it will \
@@ -727,6 +733,8 @@ and ( annotation_reachability
   , eradicate
   , fragment_retains_view
   , gradual
+  , gradual_dereferences
+  , gradual_unannotated
   , immutable_cast
   , linters
   , litho
@@ -2737,6 +2745,10 @@ and generated_classes = !generated_classes
 and get_linter_doc_url = process_linters_doc_url !linters_doc_url
 
 and gradual = !gradual
+
+and gradual_dereferences = !gradual_dereferences
+
+and gradual_unannotated = !gradual_unannotated
 
 and html = !html
 
