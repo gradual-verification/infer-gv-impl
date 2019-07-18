@@ -147,7 +147,7 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
         let trace = List.map msgs ~f:(fun msg ->
           Errlog.make_trace_element 1 loc msg []
         ) in
-        Reporting.log_error summary ~loc ~ltr:trace
+        Reporting.log_warning summary ~loc ~ltr:trace
           IssueType.gradual_dereference (String.concat ~sep:"," msgs)
       in
       let report_all () =
