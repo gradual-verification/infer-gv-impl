@@ -112,11 +112,16 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
       in
       let warnings = ref []
       in
+      let derefs = ref []
+      in
       let warn msg =
         warnings := msg :: !warnings
       in
       let err msg =
         errors := msg :: !errors
+      in
+      let deref msg =
+        derefs := msg :: !derefs
       in
       let report_warnings () =
         let msgs = List.rev !warnings in
@@ -136,9 +141,19 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
         Reporting.log_error summary ~loc ~ltr:trace
           IssueType.gradual_static (String.concat ~sep:"," msgs)
       in
+      let report_derefs () =
+        let msgs = List.rev !derefs in
+        if msgs <> [] then
+        let trace = List.map msgs ~f:(fun msg ->
+          Errlog.make_trace_element 1 loc msg []
+        ) in
+        Reporting.log_error summary ~loc ~ltr:trace
+          IssueType.gradual_dereference (String.concat ~sep:"," msgs)
+      in
       let report_all () =
         report_warnings () ;
         report_errors () ;
+        report_derefs () ;
       in
       let field_annot fieldname =
         let struct_name = Typ.Name.Java.from_string (Typ.Fieldname.Java.get_class fieldname) in
@@ -205,6 +220,11 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
           ) ;
           GLattice.Q
         | Dereference sub ->
+          (
+            let message = Format.asprintf "dereference of pointer `%a`"
+              HilExp.AccessExpression.pp sub in
+            deref message
+          ) ;
           (
             match check_chain sub with
             | T ->
@@ -323,6 +343,11 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
               | [] ->
                 { args = combined; l }
               | receiver :: tail ->
+                (
+                  let message = Format.asprintf "method call on pointer `%a`"
+                    HilExp.pp receiver in
+                  deref message
+                ) ;
                 (
                   match check_exp receiver with
                   | T ->

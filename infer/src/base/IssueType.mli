@@ -177,6 +177,8 @@ val failure_exe : t
 
 val field_not_null_checked : t
 
+val gradual_dereference : t
+
 val gradual_dynamic : t
 
 val gradual_static : t
