@@ -76,7 +76,7 @@ let args_annot procname =
   match Summary.proc_resolve_attributes procname with
   | Some { method_annotation = { params } } ->
     List.map params ~f:(fun annot ->
-      if Config.gradual_unannotated then GLattice.Q else
+      if Config.gradual_unannotated then GLattice.N else
       if Annotations.ia_is_nonnull annot then GLattice.N else
       if Annotations.ia_is_nullable annot then GLattice.T else
       GLattice.Q
@@ -183,7 +183,7 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
         | Some struct_typ ->
           let nonnull = Annotations.field_has_annot fieldname struct_typ Annotations.ia_is_nonnull in
           let nullable = Annotations.field_has_annot fieldname struct_typ Annotations.ia_is_nullable in
-          if Config.gradual_unannotated then GLattice.Q else
+          if Config.gradual_unannotated then GLattice.N else
           if nonnull then GLattice.N else
           if nullable then GLattice.T else
           GLattice.Q
@@ -204,7 +204,7 @@ module TransferFunctions (CFG : ProcCfg.S) = struct
           procname
           ~attrs_of_pname:Summary.proc_resolve_attributes
           Annotations.ia_is_nullable in
-        if Config.gradual_unannotated then GLattice.Q else
+        if Config.gradual_unannotated then GLattice.N else
         if nonnull then GLattice.N else
         if nullable then GLattice.T else
         GLattice.Q
